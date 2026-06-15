@@ -7,8 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SPK Buah Parigi Moutong",
-  description:
-    "Sistem Pendukung Keputusan penentuan komoditas buah terbaik menggunakan metode Weighted Product."
+  description: "Sistem Pendukung Keputusan komoditas buah Parigi Moutong."
 };
 
 export default function RootLayout({

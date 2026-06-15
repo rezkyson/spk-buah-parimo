@@ -25,16 +25,16 @@ const pageCases: SmokeCase[] = [
   {
     name: "Pengaturan Bobot",
     path: "/pengaturan-bobot",
-    includes: ["Bobot kriteria Weighted Product", "Total bobot", "C1"]
+    includes: ["Bobot kriteria", "Total bobot", "C1"]
   },
   {
-    name: "Perhitungan WP",
+    name: "Perhitungan",
     path: "/perhitungan-wp",
     includes: [
-      "Tahapan perhitungan Weighted Product",
-      "Nilai asli setiap kriteria",
-      "Vektor S",
-      "Vektor V"
+      "Tahapan perhitungan",
+      "Nilai Kriteria",
+      "Skor S",
+      "Skor V"
     ]
   },
   {

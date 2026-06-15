@@ -1,8 +1,18 @@
 import Link from "next/link";
+import {
+  BarChart3,
+  CalendarClock,
+  Medal,
+  Trophy,
+  UsersRound
+} from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
+import { MetricCard } from "@/components/metric-card";
+import { PageHeading } from "@/components/page-heading";
 import { RecalculateButton } from "@/components/recalculate-button";
 import { StateMessage } from "@/components/state-message";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WpResultsClient } from "@/components/wp-results-client";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
@@ -26,49 +36,51 @@ export default async function HasilRankingPage() {
 
     return (
       <AppShell active="results">
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase text-primary">
-              Hasil Ranking
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold">
-              Peringkat komoditas buah terbaik
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Ranking dihitung dari nilai V tertinggi menggunakan bobot kriteria
-              terbaru.
-            </p>
-            {savedAt ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Hasil terakhir disimpan pada{" "}
+        <PageHeading
+          actions={
+            <>
+              <Button asChild variant="outline">
+                <Link href="/perhitungan-wp">Lihat Perhitungan</Link>
+              </Button>
+              <RecalculateButton isAdmin={isAdmin} />
+            </>
+          }
+          description="Urutan komoditas terbaik berdasarkan data dan bobot yang aktif."
+          eyebrow="Hasil Ranking"
+          icon={Trophy}
+          meta={
+            savedAt ? (
+              <Badge className="gap-1.5" variant="outline">
+                <CalendarClock className="h-3.5 w-3.5" />
                 {new Intl.DateTimeFormat("id-ID", {
                   dateStyle: "medium",
                   timeStyle: "short"
-                }).format(new Date(savedAt))}.
-              </p>
+                }).format(new Date(savedAt))}
+              </Badge>
             ) : (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Hasil belum pernah disimpan. Perhitungan yang tampil adalah hasil
-                terbaru dari data saat ini.
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row lg:items-start">
-            <Button asChild variant="outline">
-              <Link href="/perhitungan-wp">Lihat Perhitungan</Link>
-            </Button>
-            <RecalculateButton isAdmin={isAdmin} />
-          </div>
-        </div>
+              <Badge variant="warning">Belum tersimpan</Badge>
+            )
+          }
+          title="Peringkat komoditas buah terbaik"
+        />
 
-        <section className="mb-6 grid gap-3 md:grid-cols-3">
-          <Metric
+        <section className="mb-6 grid gap-4 md:grid-cols-3">
+          <MetricCard
+            icon={UsersRound}
             label="Komoditas dianalisis"
+            tone="primary"
             value={formatNumber(result.rankings.length, 0)}
           />
-          <Metric label="Peringkat 1" value={top?.nama ?? "-"} />
-          <Metric
+          <MetricCard
+            icon={Medal}
+            label="Peringkat 1"
+            tone="emerald"
+            value={top?.nama ?? "-"}
+          />
+          <MetricCard
+            icon={BarChart3}
             label="Nilai V tertinggi"
+            tone="sky"
             value={top ? formatDecimal(top.nilai_v, 8) : "-"}
           />
         </section>
@@ -91,13 +103,4 @@ export default async function HasilRankingPage() {
       </AppShell>
     );
   }
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
-  );
 }

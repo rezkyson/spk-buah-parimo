@@ -53,6 +53,23 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background:
+      linear-gradient(180deg, hsl(150 35% 98%) 0%, hsl(0 0% 100%) 36%),
+      hsl(var(--background));
+  }
+
+  ::selection {
+    @apply bg-primary/15 text-foreground;
+  }
+}
+
+@layer components {
+  .premium-panel {
+    @apply rounded-lg border border-border/80 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur;
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-lg border border-border/80 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.05)];
   }
 }

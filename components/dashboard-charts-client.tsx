@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BarChart3, LineChart as LineChartIcon } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -13,6 +14,7 @@ import {
   YAxis
 } from "recharts";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNumber } from "@/lib/format";
 
 type ProductionBarDatum = {
@@ -42,19 +44,22 @@ export function DashboardChartsClient({
 
   return (
     <section className="grid gap-6 xl:grid-cols-2">
-      <div className="rounded-lg border bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold">Total Produksi Komoditas</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Akumulasi produksi 2021-2024 untuk setiap komoditas.
-        </p>
-        <div className="mt-4 h-[340px] min-w-0">
+      <Card className="overflow-hidden">
+        <CardHeader className="flex-row items-center justify-between border-b bg-muted/20">
+          <CardTitle>Total Produksi Komoditas</CardTitle>
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <BarChart3 className="h-5 w-5" />
+          </span>
+        </CardHeader>
+        <CardContent className="p-4">
+        <div className="h-[340px] min-w-0">
           {isMounted ? (
             <ResponsiveContainer height="100%" minWidth={0} width="100%">
               <BarChart
                 data={productionData}
                 margin={{ bottom: 80, left: 4, right: 8, top: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   angle={-55}
                   dataKey="name"
@@ -62,30 +67,35 @@ export function DashboardChartsClient({
                   interval={0}
                   textAnchor="end"
                   tick={{ fontSize: 11 }}
+                  tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} tickLine={false} />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="total" fill="#15803d" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="total" fill="#16a34a" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <ChartPlaceholder />
           )}
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="rounded-lg border bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold">Tren Produksi Tahunan</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Total produksi semua komoditas per tahun.
-        </p>
-        <div className="mt-4 h-[340px] min-w-0">
+      <Card className="overflow-hidden">
+        <CardHeader className="flex-row items-center justify-between border-b bg-muted/20">
+          <CardTitle>Tren Produksi Tahunan</CardTitle>
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+            <LineChartIcon className="h-5 w-5" />
+          </span>
+        </CardHeader>
+        <CardContent className="p-4">
+        <div className="h-[340px] min-w-0">
           {isMounted ? (
             <ResponsiveContainer height="100%" minWidth={0} width="100%">
               <LineChart data={trendData} margin={{ left: 4, right: 18, top: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="tahun" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="tahun" tick={{ fontSize: 12 }} tickLine={false} />
+                <YAxis tick={{ fontSize: 12 }} tickLine={false} />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
                 <Line
                   activeDot={{ r: 5 }}
@@ -101,11 +111,12 @@ export function DashboardChartsClient({
             <ChartPlaceholder />
           )}
         </div>
-      </div>
+        </CardContent>
+      </Card>
     </section>
   );
 }
 
 function ChartPlaceholder() {
-  return <div className="h-full rounded-lg bg-muted/40" />;
+  return <div className="h-full animate-pulse rounded-lg bg-muted/50" />;
 }

@@ -1,16 +1,26 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  Award,
   Calculator,
   Database,
+  LayoutDashboard,
+  LineChart,
+  Medal,
   SlidersHorizontal,
+  Sprout,
+  TrendingUp,
   Trophy
 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { DashboardChartsClient } from "@/components/dashboard-charts-client";
+import { MetricCard } from "@/components/metric-card";
+import { PageHeading } from "@/components/page-heading";
 import { StateMessage } from "@/components/state-message";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCommodityRows } from "@/lib/commodities";
 import { formatDecimal, formatNumber } from "@/lib/format";
 import { calculateCurrentWpResult } from "@/lib/wp-data";
@@ -18,25 +28,25 @@ import { calculateCurrentWpResult } from "@/lib/wp-data";
 const quickActions = [
   {
     title: "Data Komoditas",
-    description: "Kelola data produksi 2021-2024.",
+    label: "Kelola data",
     href: "/data-komoditas",
     icon: Database
   },
   {
     title: "Bobot Kriteria",
-    description: "Sesuaikan bobot C1-C4.",
+    label: "Atur bobot",
     href: "/pengaturan-bobot",
     icon: SlidersHorizontal
   },
   {
-    title: "Perhitungan WP",
-    description: "Lihat proses S dan V.",
+    title: "Perhitungan",
+    label: "Cek tahapan",
     href: "/perhitungan-wp",
     icon: Calculator
   },
   {
     title: "Hasil Ranking",
-    description: "Buka ranking dan export.",
+    label: "Lihat hasil",
     href: "/hasil-ranking",
     icon: Trophy
   }
@@ -66,62 +76,77 @@ export default async function Home() {
 
     return (
       <AppShell active="home">
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase text-primary">
-              Dashboard
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold">
-              Ringkasan komoditas buah Parigi Moutong
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Pantau data produksi, komoditas unggulan, dan tren tahunan sebelum
-              masuk ke detail perhitungan Weighted Product.
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/hasil-ranking">
-              Lihat Ranking
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        <PageHeading
+          actions={
+            <Button asChild>
+              <Link href="/hasil-ranking">
+                Lihat Ranking
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          }
+          description="Lihat kondisi data, komoditas unggulan, dan ringkasan produksi dalam satu layar."
+          eyebrow="Dashboard"
+          icon={LayoutDashboard}
+          title="Ringkasan komoditas buah Parigi Moutong"
+        />
 
-        <section className="mb-6 grid gap-3 md:grid-cols-3">
-          <Metric label="Total komoditas" value={formatNumber(commodities.length, 0)} />
-          <Metric
+        <section className="mb-6 grid gap-4 md:grid-cols-3">
+          <MetricCard
+            icon={Sprout}
+            label="Total komoditas"
+            tone="primary"
+            value={formatNumber(commodities.length, 0)}
+          />
+          <MetricCard
+            icon={Award}
             label="Komoditas dianalisis"
+            tone="sky"
             value={formatNumber(activeCommodities, 0)}
           />
-          <Metric label="Total produksi" value={formatNumber(totalProduction)} />
+          <MetricCard
+            icon={TrendingUp}
+            label="Total produksi"
+            tone="emerald"
+            value={formatNumber(totalProduction)}
+          />
         </section>
 
-        <section className="mb-6 rounded-lg border bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <Card className="mb-6 overflow-hidden">
+          <CardHeader className="flex flex-col gap-3 border-b bg-muted/20 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-base font-semibold">Top 3 Komoditas</h2>
+              <CardTitle>Top 3 Komoditas</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Berdasarkan nilai V terbaru dengan bobot aktif.
+                Komoditas dengan skor terbaik saat ini.
               </p>
             </div>
             <Button asChild variant="outline">
-              <Link href="/perhitungan-wp">Lihat Tahapan</Link>
+              <Link href="/perhitungan-wp">
+                Lihat Tahapan
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          </CardHeader>
+          <CardContent className="grid gap-4 p-5 md:grid-cols-3">
             {topThree.map((row) => (
-              <div className="rounded-lg border bg-muted/20 p-4" key={row.komoditasId}>
-                <p className="text-sm text-muted-foreground">
-                  Peringkat {row.peringkat}
-                </p>
-                <h3 className="mt-2 text-xl font-semibold">{row.nama}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Nilai V: {formatDecimal(row.nilai_v, 8)}
+              <div
+                className="rounded-lg border bg-white p-4 shadow-sm transition-transform hover:-translate-y-0.5"
+                key={row.komoditasId}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <Badge variant={row.peringkat === 1 ? "default" : "secondary"}>
+                    Peringkat {row.peringkat}
+                  </Badge>
+                  <Medal className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="mt-4 truncate text-xl font-semibold">{row.nama}</h3>
+                <p className="mt-2 font-mono text-sm text-muted-foreground">
+                  {formatDecimal(row.nilai_v, 8)}
                 </p>
               </div>
             ))}
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
         <div className="mb-6">
           <DashboardChartsClient
@@ -130,21 +155,24 @@ export default async function Home() {
           />
         </div>
 
-        <section className="grid gap-3 md:grid-cols-4">
+        <section className="grid gap-4 md:grid-cols-4">
           {quickActions.map((item) => {
             const Icon = item.icon;
 
             return (
               <Link
-                className="rounded-lg border bg-white p-4 shadow-sm transition-colors hover:border-primary/40"
+                className="group rounded-lg border border-border/80 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                 href={item.href}
                 key={item.href}
               >
-                <Icon className="h-5 w-5 text-primary" />
-                <h2 className="mt-3 font-semibold">{item.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {item.description}
-                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+                </div>
+                <h2 className="mt-4 font-semibold">{item.title}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
               </Link>
             );
           })}
@@ -166,13 +194,4 @@ export default async function Home() {
       </AppShell>
     );
   }
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
-  );
 }

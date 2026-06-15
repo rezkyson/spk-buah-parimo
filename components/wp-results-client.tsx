@@ -15,9 +15,24 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { Download, FileText } from "lucide-react";
+import {
+  BarChart3,
+  Download,
+  FileText,
+  ListOrdered,
+  Radar as RadarIcon
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import { formatDecimal } from "@/lib/format";
 import {
   getCriteriaLabel,
@@ -30,7 +45,7 @@ type WpResultsClientProps = {
   savedAt: string | null;
 };
 
-const chartColors = ["#15803d", "#0f766e", "#2563eb", "#9333ea", "#ea580c"];
+const chartColors = ["#16a34a", "#0f766e", "#2563eb", "#ca8a04", "#475569"];
 
 export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -63,7 +78,7 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
     const XLSX = await import("xlsx");
     const generatedAt = new Date().toLocaleString("id-ID");
     const metadataRows = [
-      { Keterangan: "Judul", Nilai: "Hasil Ranking WP Komoditas Buah Parigi Moutong" },
+      { Keterangan: "Judul", Nilai: "Hasil Ranking Komoditas Buah Parigi Moutong" },
       { Keterangan: "Tanggal export", Nilai: generatedAt },
       {
         Keterangan: "Hasil terakhir disimpan",
@@ -75,10 +90,7 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
     const weightRows = result.normalizedWeights.map((row) => ({
       Kode: row.kode,
       Kriteria: row.nama,
-      Tipe: row.tipe,
-      "Bobot (%)": row.bobot,
-      "Bobot Normal": row.normalizedWeight,
-      Eksponen: row.exponent
+      "Bobot (%)": row.bobot
     }));
     const rows = result.rankings.map((row) => ({
       Peringkat: row.peringkat,
@@ -86,10 +98,10 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
       "Nama Inggris": row.nama_en ?? "",
       "Nilai S": row.nilai_s,
       "Nilai V": row.nilai_v,
-      C1: row.kriteria.C1,
-      C2: row.kriteria.C2,
-      C3: row.kriteria.C3,
-      C4: row.kriteria.C4
+      Produksi: row.kriteria.C1,
+      Pertumbuhan: row.kriteria.C2,
+      "Rata-rata": row.kriteria.C3,
+      Konsistensi: row.kriteria.C4
     }));
     const metadataWorksheet = XLSX.utils.json_to_sheet(metadataRows);
     const weightWorksheet = XLSX.utils.json_to_sheet(weightRows);
@@ -98,8 +110,8 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
 
     XLSX.utils.book_append_sheet(workbook, metadataWorksheet, "Metadata");
     XLSX.utils.book_append_sheet(workbook, weightWorksheet, "Bobot");
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Hasil WP");
-    XLSX.writeFile(workbook, "hasil-ranking-wp-buah-parimo.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Hasil Ranking");
+    XLSX.writeFile(workbook, "hasil-ranking-buah-parimo.xlsx");
   }
 
   async function exportPdf() {
@@ -108,7 +120,7 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
     const doc = new jsPDF();
 
     doc.setFontSize(14);
-    doc.text("Hasil Ranking WP Komoditas Buah Parigi Moutong", 14, 16);
+    doc.text("Hasil Ranking Komoditas Buah Parigi Moutong", 14, 16);
     doc.setFontSize(10);
     doc.text(`Tanggal export: ${new Date().toLocaleString("id-ID")}`, 14, 24);
     const weightText = result.normalizedWeights
@@ -124,7 +136,7 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
     }
 
     autoTable(doc, {
-      head: [["Rank", "Komoditas", "Nilai S", "Nilai V"]],
+      head: [["Peringkat", "Komoditas", "Nilai S", "Nilai V"]],
       body: result.rankings.map((row) => [
         row.peringkat,
         row.nama,
@@ -140,18 +152,23 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
       }
     });
 
-    doc.save("hasil-ranking-wp-buah-parimo.pdf");
+    doc.save("hasil-ranking-buah-parimo.pdf");
   }
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="text-base font-semibold">Peringkat Komoditas</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Diurutkan dari nilai V tertinggi ke terendah.
-            </p>
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-col gap-4 border-b bg-muted/20 md:flex-row md:items-center md:justify-between md:space-y-0">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <ListOrdered className="h-5 w-5" />
+            </span>
+            <div>
+              <CardTitle>Peringkat Komoditas</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {result.rankings.length} komoditas dianalisis
+              </p>
+            </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button onClick={() => void exportExcel()} type="button" variant="outline">
@@ -163,72 +180,75 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
               Export PDF
             </Button>
           </div>
-        </div>
+        </CardHeader>
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[860px] border-collapse text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50 text-left">
-                <th className="px-3 py-3 font-semibold">Rank</th>
-                <th className="px-3 py-3 font-semibold">Komoditas</th>
-                <th className="px-3 py-3 text-right font-semibold">Nilai S</th>
-                <th className="px-3 py-3 text-right font-semibold">Nilai V</th>
-                <th className="px-3 py-3 text-right font-semibold">C1</th>
-                <th className="px-3 py-3 text-right font-semibold">C2</th>
-                <th className="px-3 py-3 text-right font-semibold">C3</th>
-                <th className="px-3 py-3 text-right font-semibold">C4</th>
-              </tr>
-            </thead>
-            <tbody>
+        <CardContent className="p-0">
+          <Table className="min-w-[900px]">
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>Peringkat</TableHead>
+                <TableHead>Komoditas</TableHead>
+                <TableHead className="text-right">Nilai S</TableHead>
+                <TableHead className="text-right">Nilai V</TableHead>
+                <TableHead className="text-right">Produksi</TableHead>
+                <TableHead className="text-right">Pertumbuhan</TableHead>
+                <TableHead className="text-right">Rata-rata</TableHead>
+                <TableHead className="text-right">Konsistensi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.rankings.map((row) => (
-                <tr className="border-b last:border-0" key={row.komoditasId}>
-                  <td className="px-3 py-3">
+                <TableRow key={row.komoditasId}>
+                  <TableCell>
                     <RankBadge rank={row.peringkat} />
-                  </td>
-                  <td className="px-3 py-3 font-medium">
+                  </TableCell>
+                  <TableCell className="font-medium">
                     <span>{row.nama}</span>
                     {row.nama_en ? (
                       <span className="block text-xs text-muted-foreground">
                         {row.nama_en}
                       </span>
                     ) : null}
-                  </td>
-                  <td className="px-3 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.nilai_s, 8)}
-                  </td>
-                  <td className="px-3 py-3 text-right font-medium">
+                  </TableCell>
+                  <TableCell className="text-right font-semibold tabular-nums">
                     {formatDecimal(row.nilai_v, 8)}
-                  </td>
-                  <td className="px-3 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.kriteria.C1, 2)}
-                  </td>
-                  <td className="px-3 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.kriteria.C2, 2)}
-                  </td>
-                  <td className="px-3 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.kriteria.C3, 2)}
-                  </td>
-                  <td className="px-3 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.kriteria.C4, 4)}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-lg border bg-white p-4 shadow-sm">
-          <h2 className="text-base font-semibold">Grafik Nilai V</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Perbandingan skor relatif seluruh komoditas.
-          </p>
-          <div className="mt-4 h-[360px] min-w-0">
+        <Card className="overflow-hidden">
+          <CardHeader className="flex-row items-center justify-between border-b bg-muted/20 space-y-0">
+            <CardTitle>Grafik Nilai V</CardTitle>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <BarChart3 className="h-5 w-5" />
+            </span>
+          </CardHeader>
+          <CardContent className="p-4">
+          <div className="h-[360px] min-w-0">
             {isMounted ? (
               <ResponsiveContainer height="100%" minWidth={0} width="100%">
                 <BarChart data={barData} margin={{ bottom: 80, left: 4, right: 8, top: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     angle={-55}
                     dataKey="name"
@@ -236,24 +256,29 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
                     interval={0}
                     textAnchor="end"
                     tick={{ fontSize: 11 }}
+                    tickLine={false}
                   />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} tickLine={false} />
                   <Tooltip formatter={(value) => formatDecimal(Number(value), 8)} />
-                  <Bar dataKey="nilaiV" fill="#15803d" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="nilaiV" fill="#16a34a" radius={[5, 5, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <ChartPlaceholder />
             )}
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border bg-white p-4 shadow-sm">
-          <h2 className="text-base font-semibold">Radar Top 5</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Skala relatif 0-100 per kriteria untuk lima komoditas teratas.
-          </p>
-          <div className="mt-4 h-[360px] min-w-0">
+        <Card className="overflow-hidden">
+          <CardHeader className="flex-row items-center justify-between border-b bg-muted/20 space-y-0">
+            <CardTitle>Radar Top 5</CardTitle>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+              <RadarIcon className="h-5 w-5" />
+            </span>
+          </CardHeader>
+          <CardContent className="p-4">
+          <div className="h-[360px] min-w-0">
             {isMounted ? (
               <ResponsiveContainer height="100%" minWidth={0} width="100%">
                 <RadarChart data={radarData}>
@@ -274,17 +299,18 @@ export function WpResultsClient({ result, savedAt }: WpResultsClientProps) {
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
-              <ChartPlaceholder />
-            )}
+            <ChartPlaceholder />
+          )}
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
 }
 
 function ChartPlaceholder() {
-  return <div className="h-full rounded-lg bg-muted/40" />;
+  return <div className="h-full animate-pulse rounded-lg bg-muted/50" />;
 }
 
 function RankBadge({ rank }: { rank: number }) {

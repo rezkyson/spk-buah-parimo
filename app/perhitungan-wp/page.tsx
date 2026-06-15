@@ -1,9 +1,30 @@
 import Link from "next/link";
+import type { ComponentType, ReactNode } from "react";
+import {
+  Calculator,
+  CalendarClock,
+  Database,
+  Percent,
+  Sigma,
+  TableProperties
+} from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
+import { MetricCard } from "@/components/metric-card";
+import { PageHeading } from "@/components/page-heading";
 import { RecalculateButton } from "@/components/recalculate-button";
 import { StateMessage } from "@/components/state-message";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { formatDecimal, formatNumber } from "@/lib/format";
 import {
@@ -26,169 +47,140 @@ export default async function PerhitunganWpPage() {
 
     return (
       <AppShell active="calculation">
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase text-primary">
-              Perhitungan WP
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold">
-              Tahapan perhitungan Weighted Product
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Halaman ini menampilkan nilai kriteria asli, bobot ternormalisasi,
-              vektor S, dan vektor V sebelum hasil dirangking.
-            </p>
-            {lastCalculatedAt ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Hasil terakhir disimpan pada{" "}
+        <PageHeading
+          actions={
+            <>
+              <Button asChild variant="outline">
+                <Link href="/hasil-ranking">Lihat Hasil</Link>
+              </Button>
+              <RecalculateButton isAdmin={isAdmin} />
+            </>
+          }
+          description="Tinjau nilai kriteria, bobot, dan skor yang membentuk peringkat akhir."
+          eyebrow="Perhitungan"
+          icon={Calculator}
+          meta={
+            lastCalculatedAt ? (
+              <Badge className="gap-1.5" variant="outline">
+                <CalendarClock className="h-3.5 w-3.5" />
                 {new Intl.DateTimeFormat("id-ID", {
                   dateStyle: "medium",
                   timeStyle: "short"
-                }).format(new Date(lastCalculatedAt))}.
-              </p>
-            ) : null}
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row lg:items-start">
-            <Button asChild variant="outline">
-              <Link href="/hasil-ranking">Lihat Hasil</Link>
-            </Button>
-            <RecalculateButton isAdmin={isAdmin} />
-          </div>
-        </div>
+                }).format(new Date(lastCalculatedAt))}
+              </Badge>
+            ) : null
+          }
+          title="Tahapan perhitungan"
+          tone="amber"
+        />
 
-        <section className="mb-6 grid gap-3 md:grid-cols-3">
-          <Metric
+        <section className="mb-6 grid gap-4 md:grid-cols-2">
+          <MetricCard
+            icon={Database}
             label="Komoditas dianalisis"
+            tone="primary"
             value={formatNumber(result.rankings.length, 0)}
           />
-          <Metric
+          <MetricCard
+            icon={Percent}
             label="Total bobot"
+            tone="amber"
             value={`${formatNumber(
               result.normalizedWeights.reduce((sum, row) => sum + row.bobot, 0),
               0
             )}%`}
           />
-          <Metric
-            label="Offset kriteria"
-            value={formatNumber(
-              result.criteriaAdjustments.filter((row) => row.offset > 0).length,
-              0
-            )}
-          />
         </section>
 
-        {result.criteriaAdjustments.some((row) => row.offset > 0) ? (
-          <section className="mb-6 rounded-lg border bg-white p-4 text-sm shadow-sm">
-            <h2 className="font-semibold">Penyesuaian nilai WP</h2>
-            <p className="mt-2 leading-6 text-muted-foreground">
-              WP membutuhkan nilai positif. Nilai asli tetap ditampilkan apa
-              adanya, sedangkan matriks yang masuk rumus diberi offset jika ada
-              nilai 0 atau negatif.
-            </p>
-            <div className="mt-3 grid gap-2 md:grid-cols-4">
-              {result.criteriaAdjustments.map((row) => (
-                <div className="rounded-md bg-muted/50 p-3" key={row.kode}>
-                  <p className="font-medium">{row.kode}</p>
-                  <p className="text-muted-foreground">
-                    Offset: {formatDecimal(row.offset, 4)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
         <div className="space-y-6">
-          <TableSection title="Nilai asli setiap kriteria">
-            <thead>
-              <tr className="border-b bg-muted/50 text-left">
-                <th className="px-3 py-3 font-semibold">Komoditas</th>
+          <TableSection icon={TableProperties} title="Nilai Kriteria">
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>Komoditas</TableHead>
                 {criteriaCodes.map((kode) => (
-                  <th className="px-3 py-3 text-right font-semibold" key={kode}>
+                  <TableHead className="text-right" key={kode}>
                     {kode}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.criteriaTable.map((row) => (
-                <tr className="border-b last:border-0" key={row.komoditasId}>
-                  <td className="px-3 py-3 font-medium">{row.nama}</td>
+                <TableRow key={row.komoditasId}>
+                  <TableCell className="font-medium">{row.nama}</TableCell>
                   {criteriaCodes.map((kode) => (
-                    <td className="px-3 py-3 text-right" key={kode}>
+                    <TableCell className="text-right tabular-nums" key={kode}>
                       {formatDecimal(row.kriteria[kode], 4)}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
+            </TableBody>
           </TableSection>
 
-          <TableSection title="Normalisasi bobot">
-            <thead>
-              <tr className="border-b bg-muted/50 text-left">
-                <th className="px-3 py-3 font-semibold">Kode</th>
-                <th className="px-3 py-3 font-semibold">Kriteria</th>
-                <th className="px-3 py-3 text-right font-semibold">Bobot</th>
-                <th className="px-3 py-3 text-right font-semibold">
-                  Bobot normal
-                </th>
-                <th className="px-3 py-3 text-right font-semibold">Eksponen</th>
-              </tr>
-            </thead>
-            <tbody>
+          <TableSection icon={Percent} title="Bobot Kriteria">
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>Kode</TableHead>
+                <TableHead>Kriteria</TableHead>
+                <TableHead className="text-right">Bobot</TableHead>
+                <TableHead className="text-right">Porsi bobot</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.normalizedWeights.map((row) => (
-                <tr className="border-b last:border-0" key={row.kode}>
-                  <td className="px-3 py-3 font-medium">{row.kode}</td>
-                  <td className="px-3 py-3">{row.nama}</td>
-                  <td className="px-3 py-3 text-right">{formatNumber(row.bobot)}%</td>
-                  <td className="px-3 py-3 text-right">
+                <TableRow key={row.kode}>
+                  <TableCell>
+                    <Badge variant="outline">{row.kode}</Badge>
+                  </TableCell>
+                  <TableCell className="font-medium">{row.nama}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatNumber(row.bobot)}%
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.normalizedWeight, 6)}
-                  </td>
-                  <td className="px-3 py-3 text-right">
-                    {formatDecimal(row.exponent, 6)}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
+            </TableBody>
           </TableSection>
 
-          <TableSection title="Vektor S">
-            <thead>
-              <tr className="border-b bg-muted/50 text-left">
-                <th className="px-3 py-3 font-semibold">Komoditas</th>
-                <th className="px-3 py-3 text-right font-semibold">Nilai S</th>
-              </tr>
-            </thead>
-            <tbody>
+          <TableSection icon={Sigma} title="Skor S">
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>Komoditas</TableHead>
+                <TableHead className="text-right">Nilai S</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.vectorS.map((row) => (
-                <tr className="border-b last:border-0" key={row.komoditasId}>
-                  <td className="px-3 py-3 font-medium">{row.nama}</td>
-                  <td className="px-3 py-3 text-right">
+                <TableRow key={row.komoditasId}>
+                  <TableCell className="font-medium">{row.nama}</TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatDecimal(row.nilai_s, 8)}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
+            </TableBody>
           </TableSection>
 
-          <TableSection title="Vektor V">
-            <thead>
-              <tr className="border-b bg-muted/50 text-left">
-                <th className="px-3 py-3 font-semibold">Komoditas</th>
-                <th className="px-3 py-3 text-right font-semibold">Nilai V</th>
-              </tr>
-            </thead>
-            <tbody>
+          <TableSection icon={Sigma} title="Skor V">
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>Komoditas</TableHead>
+                <TableHead className="text-right">Nilai V</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.vectorV.map((row) => (
-                <tr className="border-b last:border-0" key={row.komoditasId}>
-                  <td className="px-3 py-3 font-medium">{row.nama}</td>
-                  <td className="px-3 py-3 text-right">
+                <TableRow key={row.komoditasId}>
+                  <TableCell className="font-medium">{row.nama}</TableCell>
+                  <TableCell className="text-right font-semibold tabular-nums">
                     {formatDecimal(row.nilai_v, 8)}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
+            </TableBody>
           </TableSection>
         </div>
       </AppShell>
@@ -200,9 +192,9 @@ export default async function PerhitunganWpPage() {
           description={
             error instanceof Error
               ? error.message
-              : "Perhitungan WP belum bisa dijalankan."
+              : "Perhitungan belum bisa dijalankan."
           }
-          title="Gagal menghitung WP"
+          title="Gagal menghitung"
           type="error"
         />
       </AppShell>
@@ -210,32 +202,24 @@ export default async function PerhitunganWpPage() {
   }
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
-  );
-}
-
 function TableSection({
   children,
+  icon: Icon,
   title
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
+  icon: ComponentType<{ className?: string }>;
   title: string;
 }) {
   return (
-    <section className="rounded-lg border bg-white shadow-sm">
-      <div className="border-b px-4 py-3">
-        <h2 className="font-semibold">{title}</h2>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-sm">
-          {children}
-        </table>
-      </div>
-    </section>
+    <Card className="overflow-hidden">
+      <CardHeader className="flex-row items-center gap-3 border-b bg-muted/20 space-y-0">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <Table className="min-w-[760px]">{children}</Table>
+    </Card>
   );
 }

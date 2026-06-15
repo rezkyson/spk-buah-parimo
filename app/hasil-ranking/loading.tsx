@@ -5,7 +5,7 @@ export default function HasilRankingLoading() {
   return (
     <AppShell active="results">
       <StateMessage
-        description="Mengambil hasil ranking dan menyiapkan grafik."
+        description="Mohon tunggu sebentar."
         title="Memuat hasil ranking"
         type="loading"
       />

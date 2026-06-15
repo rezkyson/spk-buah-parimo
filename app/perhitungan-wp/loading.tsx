@@ -5,8 +5,8 @@ export default function PerhitunganWpLoading() {
   return (
     <AppShell active="calculation">
       <StateMessage
-        description="Menghitung nilai kriteria, vektor S, dan vektor V."
-        title="Memuat perhitungan WP"
+        description="Mohon tunggu sebentar."
+        title="Memuat perhitungan"
         type="loading"
       />
     </AppShell>

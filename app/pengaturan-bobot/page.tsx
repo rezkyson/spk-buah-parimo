@@ -1,4 +1,7 @@
+import { SlidersHorizontal } from "lucide-react";
+
 import { AppShell } from "@/components/app-shell";
+import { PageHeading } from "@/components/page-heading";
 import { StateMessage } from "@/components/state-message";
 import { WeightSettingsClient } from "@/components/weight-settings-client";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
@@ -37,24 +40,16 @@ export default async function PengaturanBobotPage() {
 
 function PageHeader({ isAdmin }: { isAdmin: boolean }) {
   return (
-    <div className="mb-6 flex flex-col gap-2">
-      <p className="text-sm font-medium uppercase text-primary">
-        Pengaturan Bobot
-      </p>
-      <div className="max-w-3xl">
-        <h1 className="text-3xl font-semibold">
-          Bobot kriteria Weighted Product
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Atur prioritas Produksi, Pertumbuhan, Rata-rata, dan Konsistensi
-          sebelum perhitungan ranking dijalankan.
-        </p>
-        {!isAdmin ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Login sebagai admin untuk mengubah bobot.
-          </p>
-        ) : null}
-      </div>
-    </div>
+    <PageHeading
+      description={
+        isAdmin
+          ? "Sesuaikan bobot penilaian sampai totalnya tepat 100%."
+          : "Lihat bobot penilaian yang digunakan saat ini."
+      }
+      eyebrow="Pengaturan Bobot"
+      icon={SlidersHorizontal}
+      title="Bobot kriteria"
+      tone="blue"
+    />
   );
 }

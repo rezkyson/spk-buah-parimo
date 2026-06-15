@@ -5,7 +5,7 @@ export default function HomeLoading() {
   return (
     <AppShell active="home">
       <StateMessage
-        description="Mengambil ringkasan komoditas, ranking, dan grafik produksi."
+        description="Mohon tunggu sebentar."
         title="Memuat dashboard"
         type="loading"
       />

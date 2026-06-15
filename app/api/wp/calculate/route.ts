@@ -26,7 +26,7 @@ export async function POST() {
         error:
           error instanceof Error
             ? error.message
-            : "Perhitungan WP gagal dijalankan."
+            : "Perhitungan gagal dijalankan."
       },
       { status: 400 }
     );

@@ -5,7 +5,7 @@ export default function DataKomoditasLoading() {
   return (
     <AppShell active="data">
       <StateMessage
-        description="Mengambil data produksi komoditas dari Supabase."
+        description="Mohon tunggu sebentar."
         title="Memuat data komoditas"
         type="loading"
       />

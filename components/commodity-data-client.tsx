@@ -2,12 +2,37 @@
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Download, FileUp, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  Activity,
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  FileUp,
+  Pencil,
+  Plus,
+  Search,
+  Sprout,
+  Trash2,
+  TrendingUp,
+  X
+} from "lucide-react";
 
+import { MetricCard } from "@/components/metric-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StateMessage } from "@/components/state-message";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import { formatNumber } from "@/lib/format";
 import { productionYears, type ProductionYear } from "@/lib/excel";
 import type { CommodityRow } from "@/lib/commodities";
@@ -221,25 +246,40 @@ export function CommodityDataClient({
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 md:grid-cols-3">
-        <Metric label="Total komoditas" value={formatNumber(rows.length, 0)} />
-        <Metric
+      <section className="grid gap-4 md:grid-cols-3">
+        <MetricCard
+          icon={Sprout}
+          label="Total komoditas"
+          tone="primary"
+          value={formatNumber(rows.length, 0)}
+        />
+        <MetricCard
+          icon={Activity}
           label="Komoditas dianalisis"
+          tone="sky"
           value={formatNumber(totals.activeCommodities, 0)}
         />
-        <Metric
+        <MetricCard
+          icon={TrendingUp}
           label="Total produksi"
+          tone="emerald"
           value={formatNumber(totals.totalProduction)}
         />
       </section>
 
-      <section className="rounded-lg border bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h2 className="text-base font-semibold">Data Produksi Buah</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Produksi tahun 2021 sampai 2024 dari data Excel sumber.
-            </p>
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-col gap-4 border-b bg-muted/20 md:flex-row md:items-center md:justify-between md:space-y-0">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <FileSpreadsheet className="h-5 w-5" />
+            </span>
+            <div>
+              <CardTitle>Data Produksi Buah</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatNumber(filteredRows.length, 0)} dari{" "}
+                {formatNumber(rows.length, 0)} komoditas ditampilkan
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -254,145 +294,155 @@ export function CommodityDataClient({
               </Button>
             ) : null}
           </div>
-        </div>
+        </CardHeader>
 
-        {isAdmin ? (
-          <div className="mt-4 flex flex-col gap-3 rounded-lg border bg-muted/30 p-3 md:flex-row md:items-center">
-            <div className="flex-1">
-              <Label htmlFor="excel-file">Import Excel</Label>
-              <Input
-                accept=".xlsx,.xls"
-                className="mt-2"
-                id="excel-file"
-                ref={fileInputRef}
-                type="file"
+        <CardContent className="p-5">
+          {isAdmin ? (
+            <div className="mb-5 grid gap-4 rounded-lg border border-primary/15 bg-primary/5 p-4 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div className="space-y-2">
+                <Label htmlFor="excel-file">Import Excel</Label>
+                <Input
+                  accept=".xlsx,.xls"
+                  id="excel-file"
+                  ref={fileInputRef}
+                  type="file"
+                />
+              </div>
+              <Button onClick={importExcel} type="button">
+                <FileUp className="mr-2 h-4 w-4" />
+                Import
+              </Button>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="w-full max-w-md space-y-2">
+              <Label htmlFor="search-komoditas">Cari komoditas</Label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  id="search-komoditas"
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Contoh: Durian"
+                  value={query}
+                />
+              </div>
+            </div>
+            <Badge variant="outline">
+              {formatNumber(filteredRows.length, 0)} baris
+            </Badge>
+          </div>
+
+          {status ? (
+            <p className="mt-4 flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
+              <CheckCircle2 className="h-4 w-4" />
+              {status}
+            </p>
+          ) : null}
+
+          {error ? (
+            <p className="mt-4 flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </p>
+          ) : null}
+
+          {isFormOpen ? (
+            <CommodityForm
+              form={form}
+              isPending={isPending}
+              onCancel={() => setIsFormOpen(false)}
+              onChange={setForm}
+              onSubmit={submitForm}
+            />
+          ) : null}
+
+          {rows.length === 0 ? (
+            <div className="mt-5">
+              <StateMessage
+                description="Import file Excel untuk mulai mengisi data produksi komoditas."
+                title="Belum ada data komoditas"
               />
             </div>
-            <Button className="md:mt-6" onClick={importExcel} type="button">
-              <FileUp className="mr-2 h-4 w-4" />
-              Import
-            </Button>
-          </div>
-        ) : null}
-
-        <div className="mt-4 max-w-sm">
-          <Label htmlFor="search-komoditas">Cari komoditas</Label>
-          <Input
-            className="mt-2"
-            id="search-komoditas"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Contoh: Durian"
-            value={query}
-          />
-        </div>
-
-        {status ? (
-          <p className="mt-4 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
-            {status}
-          </p>
-        ) : null}
-
-        {error ? (
-          <p className="mt-4 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-            {error}
-          </p>
-        ) : null}
-
-        {isFormOpen ? (
-          <CommodityForm
-            form={form}
-            isPending={isPending}
-            onCancel={() => setIsFormOpen(false)}
-            onChange={setForm}
-            onSubmit={submitForm}
-          />
-        ) : null}
-
-        {rows.length === 0 ? (
-          <div className="mt-4">
-            <StateMessage
-              description="Import file Excel untuk mulai mengisi data produksi komoditas."
-              title="Belum ada data komoditas"
-            />
-          </div>
-        ) : filteredRows.length === 0 ? (
-          <div className="mt-4">
-            <StateMessage
-              description="Coba gunakan kata kunci lain atau kosongkan kolom pencarian."
-              title="Komoditas tidak ditemukan"
-            />
-          </div>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[900px] border-collapse text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50 text-left">
-                  <th className="px-3 py-3 font-semibold">Komoditas</th>
-                  <th className="px-3 py-3 font-semibold">Nama Inggris</th>
-                  {productionYears.map((year) => (
-                    <th className="px-3 py-3 text-right font-semibold" key={year}>
-                      {year}
-                    </th>
-                  ))}
-                  <th className="px-3 py-3 text-right font-semibold">Total</th>
-                  {isAdmin ? (
-                    <th className="px-3 py-3 text-right font-semibold">Aksi</th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRows.map((row) => (
-                  <tr className="border-b last:border-0" key={row.id}>
-                    <td className="px-3 py-3 font-medium">{row.nama}</td>
-                    <td className="px-3 py-3 text-muted-foreground">
-                      {row.nama_en ?? "-"}
-                    </td>
+          ) : filteredRows.length === 0 ? (
+            <div className="mt-5">
+              <StateMessage
+                description="Coba gunakan kata kunci lain atau kosongkan kolom pencarian."
+                title="Komoditas tidak ditemukan"
+              />
+            </div>
+          ) : (
+            <div className="table-shell mt-5">
+              <Table className="min-w-[900px]">
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50">
+                    <TableHead>Komoditas</TableHead>
+                    <TableHead>Nama Inggris</TableHead>
                     {productionYears.map((year) => (
-                      <td className="px-3 py-3 text-right" key={year}>
-                        {formatNumber(row.produksi[year])}
-                      </td>
+                      <TableHead className="text-right" key={year}>
+                        {year}
+                      </TableHead>
                     ))}
-                    <td className="px-3 py-3 text-right font-medium">
-                      {formatNumber(row.total)}
-                    </td>
+                    <TableHead className="text-right">Total</TableHead>
                     {isAdmin ? (
-                      <td className="px-3 py-3">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            onClick={() => openEditForm(row)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            onClick={() => void deleteRow(row)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
+                      <TableHead className="text-right">Aksi</TableHead>
                     ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-medium">{row.nama}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {row.nama_en ?? "-"}
+                      </TableCell>
+                      {productionYears.map((year) => (
+                        <TableCell className="text-right tabular-nums" key={year}>
+                          {formatNumber(row.produksi[year])}
+                        </TableCell>
+                      ))}
+                      <TableCell className="text-right font-semibold tabular-nums">
+                        {row.total > 0 ? (
+                          formatNumber(row.total)
+                        ) : (
+                          <Badge variant="muted">0</Badge>
+                        )}
+                      </TableCell>
+                      {isAdmin ? (
+                        <TableCell>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              aria-label={`Edit ${row.nama}`}
+                              onClick={() => openEditForm(row)}
+                              size="icon"
+                              title={`Edit ${row.nama}`}
+                              type="button"
+                              variant="outline"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              aria-label={`Hapus ${row.nama}`}
+                              onClick={() => void deleteRow(row)}
+                              size="icon"
+                              title={`Hapus ${row.nama}`}
+                              type="button"
+                              variant="outline"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      ) : null}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -412,7 +462,7 @@ function CommodityForm({
 }) {
   return (
     <form
-      className="mt-4 rounded-lg border bg-muted/20 p-4"
+      className="mt-5 rounded-lg border border-primary/15 bg-white p-4 shadow-sm"
       onSubmit={onSubmit}
     >
       <div className="flex items-start justify-between gap-4">
@@ -420,11 +470,15 @@ function CommodityForm({
           <h3 className="font-semibold">
             {form.id ? "Edit komoditas" : "Tambah komoditas"}
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Masukkan nilai produksi dalam angka, tanpa pemisah ribuan.
-          </p>
         </div>
-        <Button onClick={onCancel} size="sm" type="button" variant="ghost">
+        <Button
+          aria-label="Tutup form"
+          onClick={onCancel}
+          size="icon"
+          title="Tutup form"
+          type="button"
+          variant="ghost"
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>

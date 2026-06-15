@@ -5,7 +5,7 @@ export default function PengaturanBobotLoading() {
   return (
     <AppShell active="weights">
       <StateMessage
-        description="Mengambil bobot kriteria dari Supabase."
+        description="Mohon tunggu sebentar."
         title="Memuat pengaturan bobot"
         type="loading"
       />

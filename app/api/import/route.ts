@@ -9,8 +9,7 @@ export const runtime = "nodejs";
 
 export async function GET() {
   return NextResponse.json({
-    message:
-      "Kirim file Excel dengan field form-data bernama file untuk import data produksi."
+    message: "Import file Excel tersedia melalui halaman Data Komoditas."
   });
 }
 

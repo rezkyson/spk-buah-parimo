@@ -1,5 +1,8 @@
+import { Database } from "lucide-react";
+
 import { AppShell } from "@/components/app-shell";
 import { CommodityDataClient } from "@/components/commodity-data-client";
+import { PageHeading } from "@/components/page-heading";
 import { StateMessage } from "@/components/state-message";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { getCommodityRows } from "@/lib/commodities";
@@ -37,24 +40,15 @@ export default async function DataKomoditasPage() {
 
 function PageHeader({ isAdmin }: { isAdmin: boolean }) {
   return (
-    <div className="mb-6 flex flex-col gap-2">
-      <p className="text-sm font-medium uppercase text-primary">
-        Data Komoditas
-      </p>
-      <div className="max-w-3xl">
-        <h1 className="text-3xl font-semibold">
-          Produksi buah 2021-2024
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Lihat, export, dan kelola data produksi yang menjadi dasar perhitungan
-          Weighted Product.
-        </p>
-        {!isAdmin ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Login sebagai admin untuk import, tambah, edit, atau hapus data.
-          </p>
-        ) : null}
-      </div>
-    </div>
+    <PageHeading
+      description={
+        isAdmin
+          ? "Tambah, impor, cari, dan perbarui data produksi buah 2021-2024."
+          : "Lihat data produksi buah 2021-2024."
+      }
+      eyebrow="Data Komoditas"
+      icon={Database}
+      title="Produksi buah 2021-2024"
+    />
   );
 }

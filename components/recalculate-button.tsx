@@ -37,9 +37,6 @@ export function RecalculateButton({ isAdmin }: { isAdmin: boolean }) {
         <Button asChild variant="outline">
           <Link href="/login?redirectTo=/perhitungan-wp">Login untuk Hitung Ulang</Link>
         </Button>
-        <p className="text-xs text-muted-foreground">
-          Pengunjung umum tetap bisa melihat proses perhitungan.
-        </p>
       </div>
     );
   }
